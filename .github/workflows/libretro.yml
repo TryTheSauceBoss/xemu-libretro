@@ -294,7 +294,7 @@ jobs:
             --disable-slirp --disable-pa --disable-pipewire --disable-alsa --disable-jack --disable-oss \
             --disable-sndio --audio-drv-list= \
             --extra-cflags="-DXBOX=1 -Wno-error" \
-            --extra-ldflags="-L$PREFIX/lib" \
+            --extra-ldflags="-L$PREFIX/lib -static-libstdc++" \
             -Dlibretro=true -Dlibretro_system=${{ matrix.profile }} -Db_staticpic=true
 
       # Every error of the run, which a tail of the output cuts off
@@ -314,6 +314,7 @@ jobs:
           $NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip --strip-unneeded dist/${{ env.CORE_STEM }}_android.so
           ls -la dist
           $NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf -d dist/${{ env.CORE_STEM }}_android.so | grep NEEDED
+          if $NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf -d dist/${{ env.CORE_STEM }}_android.so | grep -q "libc++_shared"; then echo "ERROR: still needs libc++_shared.so"; exit 1; fi
 
       - uses: actions/upload-artifact@v4
         with:
