@@ -1,0 +1,24 @@
+name: Publish core to builds branch
+on: workflow_dispatch
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: xemu_libretro-android-arm64-v8a
+          run-id: 42420136285
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: out
+      - name: Push to builds branch
+        run: |
+          cd out
+          ls -la
+          git init -q
+          git checkout -q -b builds
+          git add -A
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "arm64-v8a core from run 42420136285"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" builds
