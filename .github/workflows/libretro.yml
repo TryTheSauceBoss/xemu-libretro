@@ -42,7 +42,7 @@ jobs:
       run:
         shell: bash
     env:
-      CORE_STEM: ${{ matrix.profile == 'xbox' && 'xemu_libretro' || matrix.profile == 'chihiro' && 'xemu_chihiro_libretro' || 'xemu_full_libretro' }}
+      CORE_STEM: ${{ matrix.profile == 'xbox' && 'x1box_libretro' || matrix.profile == 'chihiro' && 'xemu_chihiro_libretro' || 'xemu_full_libretro' }}
       CROSSPREFIX: x86_64-w64-mingw32.static-
       CROSSAR: x86_64-w64-mingw32.static-gcc-ar
     steps:
@@ -154,7 +154,7 @@ jobs:
         profile: ${{ fromJSON(inputs.profile_set == 'full' && '["full"]' || inputs.profile_set == 'xbox' && '["xbox"]' || inputs.profile_set == 'chihiro' && '["chihiro"]' || '["xbox","chihiro"]') }}
         arch: [x86_64, aarch64]
     env:
-      CORE_STEM: ${{ matrix.profile == 'xbox' && 'xemu_libretro' || matrix.profile == 'chihiro' && 'xemu_chihiro_libretro' || 'xemu_full_libretro' }}
+      CORE_STEM: ${{ matrix.profile == 'xbox' && 'x1box_libretro' || matrix.profile == 'chihiro' && 'xemu_chihiro_libretro' || 'xemu_full_libretro' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -246,7 +246,7 @@ jobs:
             cpu: x86_64
             clang: x86_64-linux-android29
     env:
-      CORE_STEM: ${{ matrix.profile == 'xbox' && 'xemu_libretro' || matrix.profile == 'chihiro' && 'xemu_chihiro_libretro' || 'xemu_full_libretro' }}
+      CORE_STEM: ${{ matrix.profile == 'xbox' && 'x1box_libretro' || matrix.profile == 'chihiro' && 'xemu_chihiro_libretro' || 'xemu_full_libretro' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -332,7 +332,7 @@ jobs:
         profile: ${{ fromJSON(inputs.profile_set == 'full' && '["full"]' || inputs.profile_set == 'xbox' && '["xbox"]' || inputs.profile_set == 'chihiro' && '["chihiro"]' || '["xbox","chihiro"]') }}
         arch: [arm64, x86_64]
     env:
-      CORE_STEM: ${{ matrix.profile == 'xbox' && 'xemu_libretro' || matrix.profile == 'chihiro' && 'xemu_chihiro_libretro' || 'xemu_full_libretro' }}
+      CORE_STEM: ${{ matrix.profile == 'xbox' && 'x1box_libretro' || matrix.profile == 'chihiro' && 'xemu_chihiro_libretro' || 'xemu_full_libretro' }}
       HOMEBREW_NO_AUTO_UPDATE: 1
     steps:
       - uses: actions/checkout@v4
