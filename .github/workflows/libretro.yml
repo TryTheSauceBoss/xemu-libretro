@@ -22,8 +22,6 @@ on:
         type: choice
         options: [macos-15, macos-15-intel]
         default: macos-15
-  push:
-    branches: [main]
 
 # Test builds can be limited to the platforms their testers use: the
 # platforms input (workflow_dispatch) lists them. Pushes and "all" build
