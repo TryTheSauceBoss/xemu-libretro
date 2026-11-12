@@ -1,5 +1,13 @@
 name: Publish core to builds branch
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Build run ID to publish'
+        required: true
+      artifact:
+        description: 'Artifact name'
+        default: x1box_libretro-android-arm64-v8a
 permissions:
   contents: write
   actions: read
@@ -9,8 +17,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: xemu_libretro-android-arm64-v8a
-          run-id: 42420136285
+          name: ${{ inputs.artifact }}
+          run-id: ${{ inputs.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: out
       - name: Push to builds branch
@@ -20,5 +28,5 @@ jobs:
           git init -q
           git checkout -q -b builds
           git add -A
-          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "arm64-v8a core from run 42420136285"
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "${{ inputs.artifact }} from run ${{ inputs.run_id }}"
           git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" builds
