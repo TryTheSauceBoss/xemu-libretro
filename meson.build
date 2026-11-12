@@ -807,7 +807,7 @@ if get_option('libretro')
   # One profile per build directory: generated state and objects must not be
   # shared between cores. CPU, GPU and audio sources remain the donor's.
   libretro_profiles = {
-    'xbox': ['1', 'xemu_libretro', 'Microsoft - Xbox (OG)', 'iso|xiso'],
+    'xbox': ['1', 'x1box_libretro', 'Microsoft - Xbox (X1Box)', 'iso|xiso'],
     'chihiro': ['2', 'xemu_chihiro_libretro', 'Xemu-Chihiro', 'bin|chd|cue|gdi|iso'],
     'full': ['3', 'xemu_full_libretro', 'Xemu-Full', 'iso|xiso|bin|chd|cue|gdi'],
   }
