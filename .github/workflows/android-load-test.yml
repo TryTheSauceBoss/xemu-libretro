@@ -1,0 +1,76 @@
+name: Android load test
+on: workflow_dispatch
+permissions:
+  contents: write
+  actions: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - uses: actions/download-artifact@v4
+        with:
+          name: xemu_libretro-android-x86_64
+          run-id: 42420136285
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: xemu
+      - uses: actions/download-artifact@v4
+        with:
+          name: x1box_libretro-android-x86_64
+          run-id: 43244937198
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: x1box
+      - name: Get RetroArch
+        run: |
+          ls -la xemu x1box
+          curl -fL -o RetroArch.apk https://buildbot.libretro.com/nightly/android/RetroArch.apk
+          ls -la RetroArch.apk
+          cat > test.sh <<'SH'
+          set -x
+          adb install -r -g RetroArch.apk
+          PKG=$(adb shell pm list packages | grep -o 'com\.retroarch[a-z0-9.]*' | head -1 | tr -d '\r')
+          echo "PKG=$PKG"
+          adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1
+          sleep 30
+          adb shell am force-stop $PKG
+          adb root
+          sleep 5
+          DATA=/data/data/$PKG
+          APPUID=$(adb shell stat -c %u $DATA | tr -d '\r')
+          adb shell ls -la $DATA
+          adb push xemu/xemu_libretro_android.so /data/local/tmp/
+          adb push x1box/x1box_libretro_android.so /data/local/tmp/
+          adb push xemu/xemu_libretro.info /data/local/tmp/
+          adb push x1box/x1box_libretro.info /data/local/tmp/
+          adb shell "mkdir -p $DATA/cores $DATA/info && cp /data/local/tmp/*.so $DATA/cores/ && cp /data/local/tmp/*.info $DATA/info/ && chown -R $APPUID:$APPUID $DATA/cores $DATA/info && chmod 755 $DATA/cores $DATA/info && chmod 644 $DATA/cores/* $DATA/info/* && restorecon -R $DATA/cores $DATA/info"
+          adb shell ls -laZ $DATA/cores
+          adb shell "dd if=/dev/zero of=/sdcard/test.iso bs=1024 count=2048"
+          mkdir -p logs
+          for core in xemu_libretro_android.so x1box_libretro_android.so; do
+            adb shell am force-stop $PKG
+            adb logcat -c
+            adb shell am start -n $PKG/com.retroarch.browser.retroactivity.RetroActivityFuture -e ROM /sdcard/test.iso -e LIBRETRO $DATA/cores/$core -e CONFIGFILE /sdcard/Android/data/$PKG/files/retroarch.cfg
+            sleep 40
+            adb logcat -d > logs/$core.log
+            echo "===== $core ====="
+            grep -iE "\[Core\]|\[xemu\]|dlopen|failed|error|linker|libretro|content" logs/$core.log | head -150
+          done
+          adb shell am force-stop $PKG
+          SH
+      - name: Run in emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: bash test.sh
+      - name: Save logs to repro-logs branch
+        if: always()
+        run: |
+          mkdir -p out && cp -r logs out/ 2>/dev/null || true
+          cd out && git init -q && git checkout -q -b repro-logs && git add -A && git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm logs --allow-empty
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" repro-logs
